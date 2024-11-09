@@ -62,7 +62,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     else{
-        MAX = *argv[1];
+        MAX = atoi(argv[1]);
+        printf("%d\n", MAX);
     }
 
     // initialize all matrices to size n*n where n = MAX
