@@ -3,16 +3,9 @@
 #include <pthread.h>
 #include <time.h>
 
-int matA[MAX][MAX]; 
-int matB[MAX][MAX]; 
-
-int matSumResult[MAX][MAX];
-int matDiffResult[MAX][MAX]; 
-int matProductResult[MAX][MAX]; 
-
 int MAX;
 
-void fillMatrix(int matrix[MAX][MAX]) {
+void fillMatrix(int** matrix) {
     for(int i = 0; i<MAX; i++) {
         for(int j = 0; j<MAX; j++) {
             matrix[i][j] = rand()%10+1;
@@ -20,7 +13,7 @@ void fillMatrix(int matrix[MAX][MAX]) {
     }
 }
 
-void printMatrix(int matrix[MAX][MAX]) {
+void printMatrix(int** matrix) {
     for(int i = 0; i<MAX; i++) {
         for(int j = 0; j<MAX; j++) {
             printf("%5d", matrix[i][j]);
@@ -53,12 +46,44 @@ void* computeProduct(void* args) { // pass in the number of the ith thread
 
 // Spawn a thread to fill each cell in each result matrix.
 // How many threads will you spawn?
-int main() {
+int main(int argc, char *argv[]) {
+    int **matA; 
+    int **matB; 
+    int **matSumResult;
+    int **matDiffResult; 
+    int **matProductResult; 
+    int i;
+
     srand(time(0));  // Do Not Remove. Just ignore and continue below.
     
     // 0. Get the matrix size from the command line and assign it to MAX
+    if (argc<2){
+        fprintf(stderr, "Pass in the size of the matrix through command line\n");
+        return 0;
+    }
+    else{
+        MAX = *argv[1];
+    }
+
+    // initialize all matrices to size n*n where n = MAX
     
+    matA = malloc(MAX * sizeof *matA);
+    matB = malloc(MAX * sizeof *matB);
+    matSumResult = malloc(MAX * sizeof *matSumResult);
+    matDiffResult = malloc(MAX * sizeof *matDiffResult);
+    matProductResult = malloc(MAX * sizeof *matProductResult);
+    for (i=0; i<MAX; i++)
+    {
+        matA[i] = malloc(MAX * sizeof *matA[i]);
+        matB[i] = malloc(MAX * sizeof *matB[i]);
+        matSumResult[i] = malloc(MAX * sizeof *matSumResult[i]);
+        matProductResult[i] = malloc(MAX * sizeof *matProductResult[i]);
+        matDiffResult[i] = malloc(MAX * sizeof *matDiffResult[i]);
+    }
+        
     // 1. Fill the matrices (matA and matB) with random values.
+    fillMatrix(matA);
+    fillMatrix(matB);
     
     // 2. Print the initial matrices.
     printf("Matrix A:\n");
@@ -80,13 +105,15 @@ int main() {
     // 5. Wait for all threads to finish.
     
     // 6. Print the results.
-    printf("Results:\n");
-    printf("Sum:\n");
-    printMatrix(matSumResult);
-    printf("Difference:\n");
-    printMatrix(matDiffResult);
-    printf("Product:\n");
-    printMatrix(matProductResult);
+    // printf("Results:\n");
+    // printf("Sum:\n");
+    // printMatrix(matSumResult);
+    // printf("Difference:\n");
+    // printMatrix(matDiffResult);
+    // printf("Product:\n");
+    // printMatrix(matProductResult);
+
+    // TODO: deallocate all arrays https://stackoverflow.com/questions/3911400/how-to-pass-2d-array-matrix-in-a-function-in-c
     return 0;
   
 }
