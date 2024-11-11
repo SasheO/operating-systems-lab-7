@@ -1,9 +1,18 @@
+/*
+assumption: all matrices are square
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
 
 int MAX;
+
+struct matrixCell {
+  int row, column, value;
+};
 
 void fillMatrix(int** matrix) {
     for(int i = 0; i<MAX; i++) {
@@ -27,6 +36,8 @@ void printMatrix(int** matrix) {
 // the cell of matSumResult at the coordinates to the sum of the
 // values at the coordinates of matA and matB.
 void* computeSum(void* args) { // pass in the number of the ith thread
+    // TODO: get the number through args, assign the right cell of matSumResult to value of sum
+    struct matrixCell * targetCell = (struct matrixCell*) (args);
     return NULL;
 }
 
@@ -34,6 +45,7 @@ void* computeSum(void* args) { // pass in the number of the ith thread
 // the cell of matSumResult at the coordinates to the difference of the
 // values at the coordinates of matA and matB.
 void* computeDiff(void* args) { // pass in the number of the ith thread
+    struct matrixCell * targetCell = (struct matrixCell*) (args);
     return NULL;
 }
 
@@ -41,6 +53,7 @@ void* computeDiff(void* args) { // pass in the number of the ith thread
 // the cell of matSumResult at the coordinates to the inner product
 // of matA and matB.
 void* computeProduct(void* args) { // pass in the number of the ith thread
+    struct matrixCell * targetCell = (struct matrixCell*) (args);
     return NULL;
 }
 
@@ -53,6 +66,7 @@ int main(int argc, char *argv[]) {
     int **matDiffResult; 
     int **matProductResult; 
     int i;
+    
 
     srand(time(0));  // Do Not Remove. Just ignore and continue below.
     
@@ -92,7 +106,13 @@ int main(int argc, char *argv[]) {
     printf("Matrix B:\n");
     printMatrix(matB);
     
-    // 3. Create pthread_t objects for our threads.
+    // 3. TODO Create pthread_t objects for our threads.
+    pthread_t threads[MAX];
+    for (i=0; i<MAX; i++){
+
+        // TODO: add, subtract, dot product
+        // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
+    }
     
     // 4. Create a thread for each cell of each matrix operation.
     // 
@@ -106,13 +126,13 @@ int main(int argc, char *argv[]) {
     // 5. Wait for all threads to finish.
     
     // 6. Print the results.
-    // printf("Results:\n");
-    // printf("Sum:\n");
-    // printMatrix(matSumResult);
-    // printf("Difference:\n");
-    // printMatrix(matDiffResult);
-    // printf("Product:\n");
-    // printMatrix(matProductResult);
+    printf("Results:\n");
+    printf("Sum:\n");
+    printMatrix(matSumResult);
+    printf("Difference:\n");
+    printMatrix(matDiffResult);
+    printf("Product:\n");
+    printMatrix(matProductResult);
 
     // TODO: deallocate all arrays https://stackoverflow.com/questions/3911400/how-to-pass-2d-array-matrix-in-a-function-in-c
     return 0;
