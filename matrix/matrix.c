@@ -9,9 +9,14 @@ assumption: all matrices are square
 #include <time.h>
 
 int MAX;
+int **matA; 
+int **matB; 
+int **matSumResult;
+int **matDiffResult; 
+int **matProductResult; 
 
 struct matrixCell {
-  int row, column, value;
+  int row, col, value;
 };
 
 void fillMatrix(int** matrix) {
@@ -38,6 +43,7 @@ void printMatrix(int** matrix) {
 void* computeSum(void* args) { // pass in the number of the ith thread
     // TODO: get the number through args, assign the right cell of matSumResult to value of sum
     struct matrixCell * targetCell = (struct matrixCell*) (args);
+    matSumResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]+matB[targetCell->row][targetCell->col];
     return NULL;
 }
 
@@ -46,6 +52,7 @@ void* computeSum(void* args) { // pass in the number of the ith thread
 // values at the coordinates of matA and matB.
 void* computeDiff(void* args) { // pass in the number of the ith thread
     struct matrixCell * targetCell = (struct matrixCell*) (args);
+    
     return NULL;
 }
 
@@ -60,12 +67,8 @@ void* computeProduct(void* args) { // pass in the number of the ith thread
 // Spawn a thread to fill each cell in each result matrix.
 // How many threads will you spawn?
 int main(int argc, char *argv[]) {
-    int **matA; 
-    int **matB; 
-    int **matSumResult;
-    int **matDiffResult; 
-    int **matProductResult; 
-    int i;
+    
+    int i, row, col;
     
 
     srand(time(0));  // Do Not Remove. Just ignore and continue below.
@@ -107,11 +110,22 @@ int main(int argc, char *argv[]) {
     printMatrix(matB);
     
     // 3. TODO Create pthread_t objects for our threads.
-    pthread_t threads[MAX];
-    for (i=0; i<MAX; i++){
+    pthread_t threads[MAX*MAX];
+    i=0;
+    struct matrixCell targetCells[MAX*MAX];
+    for (row=0; row<MAX; row++){
+        for (col=0; col<MAX; col++){
+            targetCells[i].row = row;
+            targetCells[i].col = col;
+            pthread_create(&threads[i], NULL, computeSum, &targetCells[i]); 
+            // TODO: add, subtract, dot product
+            // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
+            i ++;
+        }
+    }
 
-        // TODO: add, subtract, dot product
-        // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
+    for (i=0; i<MAX*MAX; i++){
+        pthread_join(threads[i], NULL);
     }
     
     // 4. Create a thread for each cell of each matrix operation.
