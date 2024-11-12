@@ -47,7 +47,7 @@ void* computeSumCell(void* args) { // pass in the number of the ith thread
     return NULL;
 }
 
-void computeSumMatrix(){
+void computeFuncMatrix(void *(*func)(void *)){
     int i, row, col;
     pthread_t threads[MAX*MAX];
     i=0;
@@ -56,7 +56,7 @@ void computeSumMatrix(){
         for (col=0; col<MAX; col++){
             targetCells[i].row = row;
             targetCells[i].col = col;
-            pthread_create(&threads[i], NULL, computeSumCell, &targetCells[i]); 
+            pthread_create(&threads[i], NULL, func, &targetCells[i]); 
             // TODO: add, subtract, dot product
             // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
             i ++;
@@ -71,16 +71,16 @@ void computeSumMatrix(){
 // Fetches the appropriate coordinates from the argument, and sets
 // the cell of matSumResult at the coordinates to the difference of the
 // values at the coordinates of matA and matB.
-void* computeDiff(void* args) { // pass in the number of the ith thread
+void* computeDiffCell(void* args) { // pass in the number of the ith thread
     struct matrixCell * targetCell = (struct matrixCell*) (args);
-    
+    matSumResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]-matB[targetCell->row][targetCell->col];
     return NULL;
 }
 
 // Fetches the appropriate coordinates from the argument, and sets
 // the cell of matSumResult at the coordinates to the inner product
 // of matA and matB.
-void* computeProduct(void* args) { // pass in the number of the ith thread
+void* computeProductCell(void* args) { // pass in the number of the ith thread
     struct matrixCell * targetCell = (struct matrixCell*) (args);
     return NULL;
 }
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     printMatrix(matB);
     
     // 3. TODO Create pthread_t objects for our threads.
-    computeSumMatrix();
+    computeFuncMatrix(computeSumCell);
     
     // 4. Create a thread for each cell of each matrix operation.
     // 
