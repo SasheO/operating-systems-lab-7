@@ -1,7 +1,4 @@
-/*
-assumption: all matrices are square
-*/
-
+// assumption: all matrices are square
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,11 +12,18 @@ int **matSumResult;
 int **matDiffResult; 
 int **matProductResult; 
 
-struct matrixCell {
-  int row, col, value;
+struct matrixCellAddr {
+  int row, col;
 };
 
 void fillMatrix(int** matrix) {
+    /*
+    fillMatrix takes in a matrix input and fills its cells with random values
+    parameters:
+        matrix (int **): a matrix whose values will be randomly filled in by the function
+    returns:
+        void
+    */
     for(int i = 0; i<MAX; i++) {
         for(int j = 0; j<MAX; j++) {
             matrix[i][j] = rand()%10+1;
@@ -28,6 +32,13 @@ void fillMatrix(int** matrix) {
 }
 
 void printMatrix(int** matrix) {
+    /*
+    printMatrix takes in a matrix input and prints its values as a grid
+    parameters:
+        matrix (int **): a matrix whose values will be printed by the function
+    returns:
+        void
+    */
     for(int i = 0; i<MAX; i++) {
         for(int j = 0; j<MAX; j++) {
             printf("%5d", matrix[i][j]);
@@ -37,62 +48,82 @@ void printMatrix(int** matrix) {
     printf("\n");
 }
 
-// Fetches the appropriate coordinates from the argument, and sets
-// the cell of matSumResult at the coordinates to the sum of the
-// values at the coordinates of matA and matB.
-void* computeSumCell(void* args) { // pass in the number of the ith thread
-    // TODO: get the number through args, assign the right cell of matSumResult to value of sum
-    struct matrixCell * targetCell = (struct matrixCell*) (args);
-    matSumResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]+matB[targetCell->row][targetCell->col];
+
+void* computeSumCell(void* args) { 
+    /*
+    computeSumCell fetches the appropriate coordinates from the argument, and sets the cell of matSumResult at the coordinates to the sum of the values at the coordinates of matA and matB.
+    parameters:
+        void* args: this is a void pointer which expects a matrixCellAddr struct input with the row and column of the target cell in matSumResult
+    */
+
+    struct matrixCellAddr * targetCellAddr = (struct matrixCellAddr*) (args);
+    matSumResult[targetCellAddr->row][targetCellAddr->col] = matA[targetCellAddr->row][targetCellAddr->col]+matB[targetCellAddr->row][targetCellAddr->col];
+    return NULL;
+}
+
+
+void* computeDiffCell(void* args) { 
+    /*
+    computeDiffCellFetches the appropriate coordinates from the argument, and sets the cell of matSumResult at the coordinates to the difference of the values at the coordinates of matA and matB.\
+    parameters:
+        void* args: this is a void pointer which expects a matrixCellAddr struct input with the row and column of the target cell in matDiffesult
+    */
+    struct matrixCellAddr * targetCellAddr = (struct matrixCellAddr*) (args);
+    matDiffResult[targetCellAddr->row][targetCellAddr->col] = matA[targetCellAddr->row][targetCellAddr->col]-matB[targetCellAddr->row][targetCellAddr->col];
+    return NULL;
+}
+
+
+void* computeProductCell(void* args) { 
+    /*
+    computeProductCell fetches the appropriate coordinates from the argument, and sets the cell of matSumResult at the coordinates to the inner product of matA and matB.
+    parameters:
+        void* args: this is a void pointer which expects a matrixCellAddr struct input with the row and column of the target cell in matProductResult
+    */
+    struct matrixCellAddr * targetCellAddr = (struct matrixCellAddr*) (args);
+    int i, product;
+    product = 0;
+    for (i=0;i<MAX;i++){
+        product = product + (matA[targetCellAddr->row][i]*matB[i][targetCellAddr->col]);
+    }
+    matProductResult[targetCellAddr->row][targetCellAddr->col] = product;
     return NULL;
 }
 
 void computeFuncMatrix(void *(*func)(void *)){
+    /*
+    computeFuncMatrix does matrix computations in parallel using threads
+    parameters:
+        func (void *(*func)(void *)): a function pointer that returns a void pointer. function is expected to take in an argument of a targetCellAddr address
+    returns:
+        NULL
+    */
+
+    // INSTRUCTIONS:
+    // 3. Create pthread_t objects for our threads.
+    // 4. Create a thread for each cell of each matrix operation.
+    // 5. Wait for all threads to finish.
+    
     int i, row, col;
-    pthread_t threads[MAX*MAX];
+    pthread_t threads[MAX*MAX]; // MAX*MAX array of threads since there are MAX*MAX cells per matrix
+    struct matrixCellAddr targetCellAddrs[MAX*MAX]; // holds target cells separately in different indices of array so that unexpected things don't occur, since threads share same memory
+    
     i=0;
-    struct matrixCell targetCells[MAX*MAX];
     for (row=0; row<MAX; row++){
         for (col=0; col<MAX; col++){
-            targetCells[i].row = row;
-            targetCells[i].col = col;
-            pthread_create(&threads[i], NULL, func, &targetCells[i]); 
-            // TODO: add, subtract, dot product
-            // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
+            targetCellAddrs[i].row = row; // put the row into targetCellAddr[i] struct
+            targetCellAddrs[i].col = col;
+            pthread_create(&threads[i], NULL, func, &targetCellAddrs[i]); // pass targetCellAddrs[i] into given func such as computeSumCell to carry out the computation (sum) on the cell
             i ++;
         }
     }
 
     for (i=0; i<MAX*MAX; i++){
-        pthread_join(threads[i], NULL);
+        pthread_join(threads[i], NULL); // wait for thread to finish
     }
 }
 
-// Fetches the appropriate coordinates from the argument, and sets
-// the cell of matSumResult at the coordinates to the difference of the
-// values at the coordinates of matA and matB.
-void* computeDiffCell(void* args) { // pass in the number of the ith thread
-    struct matrixCell * targetCell = (struct matrixCell*) (args);
-    matDiffResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]-matB[targetCell->row][targetCell->col];
-    return NULL;
-}
 
-// Fetches the appropriate coordinates from the argument, and sets
-// the cell of matSumResult at the coordinates to the inner product
-// of matA and matB.
-void* computeProductCell(void* args) { // pass in the number of the ith thread
-    struct matrixCell * targetCell = (struct matrixCell*) (args);
-    int i, product;
-    product = 0;
-    for (i=0;i<MAX;i++){
-        product = product + (matA[targetCell->row][i]*matB[i][targetCell->col]);
-    }
-    matProductResult[targetCell->row][targetCell->col] = product;
-    return NULL;
-}
-
-// Spawn a thread to fill each cell in each result matrix.
-// How many threads will you spawn?
 int main(int argc, char *argv[]) {
     int i, row, col;
     srand(time(0));  // Do Not Remove. Just ignore and continue below.
@@ -107,7 +138,6 @@ int main(int argc, char *argv[]) {
     }
 
     // initialize all matrices to size n*n where n = MAX
-    
     matA = malloc(MAX * sizeof *matA);
     matB = malloc(MAX * sizeof *matB);
     matSumResult = malloc(MAX * sizeof *matSumResult);
@@ -132,21 +162,11 @@ int main(int argc, char *argv[]) {
     printf("Matrix B:\n");
     printMatrix(matB);
     
-    // 3. TODO Create pthread_t objects for our threads.
-    computeFuncMatrix(computeSumCell);
-    computeFuncMatrix(computeDiffCell);
-    computeFuncMatrix(computeProductCell);
+    // computeFuncMatrix takes on responsibility of creating threads for each cell of the matrix and does the computation for the target matrix based on the function you give it
+    computeFuncMatrix(computeSumCell); // gets sum of matA and matB, result stored in matSumResult
+    computeFuncMatrix(computeDiffCell); // gets difference of matA and matB, result stored in matDiffResult
+    computeFuncMatrix(computeProductCell); // gets dot product of matA and matB, result stored in matProductResult
     
-    // 4. Create a thread for each cell of each matrix operation.
-    // 
-    // You'll need to pass in the coordinates of the cell you want the thread
-    // to compute.
-    // 
-    // One way to do this is to malloc memory for the thread number i, populate the coordinates
-    // into that space, and pass that address to the thread. The thread will use that number to calcuate 
-    // its portion of the matrix. The thread will then have to free that space when it's done with what's in that memory.
-    
-    // 5. Wait for all threads to finish.
     
     // 6. Print the results.
     printf("Results:\n");
@@ -157,6 +177,7 @@ int main(int argc, char *argv[]) {
     printf("Product:\n");
     printMatrix(matProductResult);
 
+    // free memory used to dynamically allocate matrices
     for (i=0; i<MAX; i++)
     {
         free(matA[i]);
