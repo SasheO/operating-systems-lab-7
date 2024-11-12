@@ -104,7 +104,6 @@ int main(int argc, char *argv[]) {
     }
     else{
         MAX = atoi(argv[1]);
-        printf("%d\n", MAX);
     }
 
     // initialize all matrices to size n*n where n = MAX
@@ -158,7 +157,19 @@ int main(int argc, char *argv[]) {
     printf("Product:\n");
     printMatrix(matProductResult);
 
-    // TODO: deallocate all arrays https://stackoverflow.com/questions/3911400/how-to-pass-2d-array-matrix-in-a-function-in-c
+    for (i=0; i<MAX; i++)
+    {
+        free(matA[i]);
+        free(matB[i]);
+        free(matSumResult[i]);
+        free(matDiffResult[i]);
+        free(matProductResult[i]);
+    }
+    free(matA);
+    free(matB);
+    free(matSumResult);
+    free(matDiffResult);
+    free(matProductResult);
     return 0;
   
 }
