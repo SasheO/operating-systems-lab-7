@@ -73,7 +73,7 @@ void computeFuncMatrix(void *(*func)(void *)){
 // values at the coordinates of matA and matB.
 void* computeDiffCell(void* args) { // pass in the number of the ith thread
     struct matrixCell * targetCell = (struct matrixCell*) (args);
-    matSumResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]-matB[targetCell->row][targetCell->col];
+    matDiffResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]-matB[targetCell->row][targetCell->col];
     return NULL;
 }
 
@@ -88,10 +88,7 @@ void* computeProductCell(void* args) { // pass in the number of the ith thread
 // Spawn a thread to fill each cell in each result matrix.
 // How many threads will you spawn?
 int main(int argc, char *argv[]) {
-    
     int i, row, col;
-    
-
     srand(time(0));  // Do Not Remove. Just ignore and continue below.
     
     // 0. Get the matrix size from the command line and assign it to MAX
@@ -132,6 +129,8 @@ int main(int argc, char *argv[]) {
     
     // 3. TODO Create pthread_t objects for our threads.
     computeFuncMatrix(computeSumCell);
+    computeFuncMatrix(computeDiffCell);
+    computeFuncMatrix(computeProductCell);
     
     // 4. Create a thread for each cell of each matrix operation.
     // 
