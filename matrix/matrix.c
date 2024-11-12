@@ -40,11 +40,32 @@ void printMatrix(int** matrix) {
 // Fetches the appropriate coordinates from the argument, and sets
 // the cell of matSumResult at the coordinates to the sum of the
 // values at the coordinates of matA and matB.
-void* computeSum(void* args) { // pass in the number of the ith thread
+void* computeSumCell(void* args) { // pass in the number of the ith thread
     // TODO: get the number through args, assign the right cell of matSumResult to value of sum
     struct matrixCell * targetCell = (struct matrixCell*) (args);
     matSumResult[targetCell->row][targetCell->col] = matA[targetCell->row][targetCell->col]+matB[targetCell->row][targetCell->col];
     return NULL;
+}
+
+void computeSumMatrix(){
+    int i, row, col;
+    pthread_t threads[MAX*MAX];
+    i=0;
+    struct matrixCell targetCells[MAX*MAX];
+    for (row=0; row<MAX; row++){
+        for (col=0; col<MAX; col++){
+            targetCells[i].row = row;
+            targetCells[i].col = col;
+            pthread_create(&threads[i], NULL, computeSumCell, &targetCells[i]); 
+            // TODO: add, subtract, dot product
+            // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
+            i ++;
+        }
+    }
+
+    for (i=0; i<MAX*MAX; i++){
+        pthread_join(threads[i], NULL);
+    }
 }
 
 // Fetches the appropriate coordinates from the argument, and sets
@@ -110,23 +131,7 @@ int main(int argc, char *argv[]) {
     printMatrix(matB);
     
     // 3. TODO Create pthread_t objects for our threads.
-    pthread_t threads[MAX*MAX];
-    i=0;
-    struct matrixCell targetCells[MAX*MAX];
-    for (row=0; row<MAX; row++){
-        for (col=0; col<MAX; col++){
-            targetCells[i].row = row;
-            targetCells[i].col = col;
-            pthread_create(&threads[i], NULL, computeSum, &targetCells[i]); 
-            // TODO: add, subtract, dot product
-            // pthread_create(&threads[i], NULL, function_name, arguments to function); // look here https://youtube.com/watch?v=ldJ8WGZVXZk
-            i ++;
-        }
-    }
-
-    for (i=0; i<MAX*MAX; i++){
-        pthread_join(threads[i], NULL);
-    }
+    computeSumMatrix();
     
     // 4. Create a thread for each cell of each matrix operation.
     // 
