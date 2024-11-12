@@ -82,6 +82,12 @@ void* computeDiffCell(void* args) { // pass in the number of the ith thread
 // of matA and matB.
 void* computeProductCell(void* args) { // pass in the number of the ith thread
     struct matrixCell * targetCell = (struct matrixCell*) (args);
+    int i, product;
+    product = 0;
+    for (i=0;i<MAX;i++){
+        product = product + (matA[targetCell->row][i]*matB[i][targetCell->col]);
+    }
+    matProductResult[targetCell->row][targetCell->col] = product;
     return NULL;
 }
 
