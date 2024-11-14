@@ -118,17 +118,14 @@ void computeFuncMatrix(void *(*func)(void *)){
     thread_indx=0;
     for (row=0; row<MAX; row++){
         for (col=0; col<MAX; col++){
-            printf("target_cell_indx: %d\n",target_cell_indx);
             targetCellAddrs[target_cell_indx].row = row; // put the row into targetCellAddr[target_cell_indx] struct
             targetCellAddrs[target_cell_indx].col = col;
             pthread_create(&threads[thread_indx], NULL, func, &targetCellAddrs[target_cell_indx]); // pass targetCellAddrs[i] into given func such as computeSumCell to carry out the computation (sum) on the cell
             thread_indx++;
-            printf("1 thread_indx: %d\n", thread_indx);
             target_cell_indx ++;
             if (thread_indx==threads_used){
                 
                 for (thread_indx=0; thread_indx<threads_used; thread_indx++){
-                    printf("%d threads_used; thread_indx: %d\n", threads_used, thread_indx);
                     pthread_join(threads[thread_indx], NULL); // wait for thread to finish
                 }
                 thread_indx=0;
@@ -138,9 +135,6 @@ void computeFuncMatrix(void *(*func)(void *)){
         }
     }
 
-    for (thread_indx=0; thread_indx<threads_used; thread_indx++){
-        pthread_join(threads[thread_indx], NULL); // wait for thread to finish
-    }
 }
 
 
