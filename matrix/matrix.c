@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <time.h>
 
+#define MAX_NUM_THREADS 10
 int MAX;
 int **matA; 
 int **matB; 
@@ -104,22 +105,41 @@ void computeFuncMatrix(void *(*func)(void *)){
     // 4. Create a thread for each cell of each matrix operation.
     // 5. Wait for all threads to finish.
     
-    int i, row, col;
-    pthread_t threads[MAX*MAX]; // MAX*MAX array of threads since there are MAX*MAX cells per matrix
+    // TODO: get threads to be max 10 (MAX_NUM_THREADS) and test
+    int target_cell_indx, row, col, thread_indx, threads_used;
+    pthread_t threads[MAX_NUM_THREADS]; // MAX*MAX array of threads since there are MAX*MAX cells per matrix
     struct matrixCellAddr targetCellAddrs[MAX*MAX]; // holds target cells separately in different indices of array so that unexpected things don't occur, since threads share same memory
-    
-    i=0;
+    threads_used = MAX_NUM_THREADS; // dealing with edge case where matrix n*n < max number of threads
+    if ((MAX*MAX)<MAX_NUM_THREADS){
+        threads_used=MAX*MAX;
+    }
+
+    target_cell_indx=0;
+    thread_indx=0;
     for (row=0; row<MAX; row++){
         for (col=0; col<MAX; col++){
-            targetCellAddrs[i].row = row; // put the row into targetCellAddr[i] struct
-            targetCellAddrs[i].col = col;
-            pthread_create(&threads[i], NULL, func, &targetCellAddrs[i]); // pass targetCellAddrs[i] into given func such as computeSumCell to carry out the computation (sum) on the cell
-            i ++;
+            printf("target_cell_indx: %d\n",target_cell_indx);
+            targetCellAddrs[target_cell_indx].row = row; // put the row into targetCellAddr[target_cell_indx] struct
+            targetCellAddrs[target_cell_indx].col = col;
+            pthread_create(&threads[thread_indx], NULL, func, &targetCellAddrs[target_cell_indx]); // pass targetCellAddrs[i] into given func such as computeSumCell to carry out the computation (sum) on the cell
+            thread_indx++;
+            printf("1 thread_indx: %d\n", thread_indx);
+            target_cell_indx ++;
+            if (thread_indx==threads_used){
+                
+                for (thread_indx=0; thread_indx<threads_used; thread_indx++){
+                    printf("%d threads_used; thread_indx: %d\n", threads_used, thread_indx);
+                    pthread_join(threads[thread_indx], NULL); // wait for thread to finish
+                }
+                thread_indx=0;
+                
+            }
+            
         }
     }
 
-    for (i=0; i<MAX*MAX; i++){
-        pthread_join(threads[i], NULL); // wait for thread to finish
+    for (thread_indx=0; thread_indx<threads_used; thread_indx++){
+        pthread_join(threads[thread_indx], NULL); // wait for thread to finish
     }
 }
 
