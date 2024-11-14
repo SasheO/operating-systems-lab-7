@@ -106,13 +106,15 @@ void computeFuncMatrix(void *(*func)(void *)){
     // 5. Wait for all threads to finish.
     
     // TODO: get threads to be max 10 (MAX_NUM_THREADS) and test
-    int target_cell_indx, row, col, thread_indx, threads_used;
+    int target_cell_indx, row, col, thread_indx, num_threads_used;
     pthread_t threads[MAX_NUM_THREADS]; // MAX*MAX array of threads since there are MAX*MAX cells per matrix
     struct matrixCellAddr targetCellAddrs[MAX*MAX]; // holds target cells separately in different indices of array so that unexpected things don't occur, since threads share same memory
-    threads_used = MAX_NUM_THREADS; // dealing with edge case where matrix n*n < max number of threads
+
+    num_threads_used = MAX_NUM_THREADS; // dealing with edge case where matrix n*n < max number of threads so not all 10 threads need be used
     if ((MAX*MAX)<MAX_NUM_THREADS){
-        threads_used=MAX*MAX;
+        num_threads_used=MAX*MAX;
     }
+
 
     target_cell_indx=0;
     thread_indx=0;
@@ -123,9 +125,9 @@ void computeFuncMatrix(void *(*func)(void *)){
             pthread_create(&threads[thread_indx], NULL, func, &targetCellAddrs[target_cell_indx]); // pass targetCellAddrs[i] into given func such as computeSumCell to carry out the computation (sum) on the cell
             thread_indx++;
             target_cell_indx ++;
-            if (thread_indx==threads_used){
+            if (thread_indx==num_threads_used){
                 
-                for (thread_indx=0; thread_indx<threads_used; thread_indx++){
+                for (thread_indx=0; thread_indx<num_threads_used; thread_indx++){
                     pthread_join(threads[thread_indx], NULL); // wait for thread to finish
                 }
                 thread_indx=0;
@@ -134,7 +136,6 @@ void computeFuncMatrix(void *(*func)(void *)){
             
         }
     }
-
 }
 
 
